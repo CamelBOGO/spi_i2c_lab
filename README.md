@@ -1,4 +1,4 @@
-<h2 align="center">I2C Demo</h2>
+<h1 align="center">I2C Demo</h1>
 
 <div align="center">
 
