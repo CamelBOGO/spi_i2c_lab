@@ -52,6 +52,7 @@ void i2cHigh(uint8_t pin) {
 void i2cLow(uint8_t pin) {
 	digitalWrite(pin, LOW);
 	pinMode(pin, OUTPUT);
+	
 	delayMicroseconds(delayTime);
 }
 
