@@ -8,11 +8,7 @@
 </div>
 
 ---
-<p align="center"> This is teaching materials about low level I2C on Arduino. If you don't know what's going on, please return.
-    <br> 
-</p>
-
-<p align="center"> Text
+<p align="center"> This is some teaching materials about low level I2C on Arduino without using "Wire.h". If you don't know what's going on, please return.
     <br> 
 </p>
 
