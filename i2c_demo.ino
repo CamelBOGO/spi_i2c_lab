@@ -6,7 +6,7 @@
 
 uint8_t dataPin = A4; // sda
 uint8_t clockPin = A5; // sca
-int8_t delayTime = 1; //us
+int8_t delayTime = 1; // us
 
 void i2cHigh(uint8_t pin);
 void i2cLow(uint8_t pin);
@@ -46,6 +46,7 @@ void loop() {
 
 void i2cHigh(uint8_t pin) {
 	pinMode(pin, INPUT_PULLUP);
+
 	delayMicroseconds(delayTime);
 }
 
@@ -89,6 +90,7 @@ byte i2cReadBit(uint8_t dataPin, uint8_t clockPin) {
 	i2cHigh(clockPin);
 	byte bit = digitalRead(dataPin);
 	i2cLow(clockPin);
+
 	return bit;
 }
 
