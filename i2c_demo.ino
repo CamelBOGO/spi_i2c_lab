@@ -130,7 +130,7 @@ byte i2cReadByte(uint8_t dataPin, uint8_t clockPin) {
 		// Same as bitWrite(data, 7 - i, i2cReadBit());
 		// Can it be simpler?
 		// data = data & ~(0b1 << (7 - i)) | i2cReadBit(dataPin, clockPin) << (7 - i);
-		data &= i2cReadBit(dataPin, clockPin);
+		data |= i2cReadBit(dataPin, clockPin);
 		if (i < 7) data <<= 1;
 	}
 
