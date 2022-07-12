@@ -6,6 +6,9 @@
 # Arduino
 __vm/
 
+# Visual Studio Code
+.vscode/
+
 # User-specific files
 *.rsuser
 *.suo
