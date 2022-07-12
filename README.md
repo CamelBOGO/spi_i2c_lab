@@ -1,4 +1,4 @@
-<h1 align="center">I2C Demo</h1>
+<h1 align="center">SPI and I2C Demo</h1>
 
 <div align="center">
 
