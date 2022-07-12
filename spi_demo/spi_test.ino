@@ -63,15 +63,15 @@ void setup() {
     pinMode(SPI_Pin_CS,OUTPUT);
     digitalWrite(SPI_Pin_CS,HIGH);
 
-    spiWrite(0X0F,0);
+    spiWrite(0X0F,0);       //Display test
 
-    spiWrite(0x0B,0x07);
+    spiWrite(0x0B,0x07);        //scan limit
 
-    spiWrite(0x09,0);
+    spiWrite(0x09,0);       //Decode mode
 
     clearDisplay();
 
-    spiWrite(0x0C,0);
+    spiWrite(0x0C,0);       //Shutdown true
 
 
 
