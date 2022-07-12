@@ -1,12 +1,12 @@
 #define SPI_bitRead(value, bit) (((value) >> (bit)) & 0x01)
 
 // Global Variables
-int SPI_Pin_MOSI = 11;  // MOSI
-int SPI_Pin_CS = 10;    // CS
-int SPI_Pin_CLK = 13;   // clk
+uint8_t spiMosiPin = 11;  // MOSI
+uint8_t spiCsPin = 10;    // CS
+uint8_t spiClkPin = 13;   // clk
 
 // Function Prototypes
-void spiInt(int SPI_Pin_MOSI, int SPI_Pin_CS, int SPI_Pin_CLK);
+void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin);
 void spiWrite(byte opcode, byte data);
 void clearDisplay();
 void test01();
@@ -14,18 +14,14 @@ void test01();
 /*------------------------------Main---------------------------------*/
 
 void setup() {
-	// spiInt();
+	spiInit(spiMosiPin, spiCsPin, spiClkPin);
 
-	//   lc.shutdown(0, false);
-	spiWrite(0x0c, 1);
+	spiWrite(0x0c, 1); // lc.shutdown(0, false);	
+	// Adjust the brightness, maximum is 15.
+	spiWrite(0x0A, 5); // lc.setIntensity(0, 5);	
+	clearDisplay(); // lc.clearDisplay(0);
 
-	//   lc.setIntensity(0, 5);     // Adjust the brightness maximum is 15
-	spiWrite(0x0A, 5);
-
-	//   lc.clearDisplay(0);
-	clearDisplay();
 	test01();
-	while (1);
 }
 
 void loop() {}
@@ -33,11 +29,11 @@ void loop() {}
 /*------------------------------Defined Function---------------------------------*/
 
  // initialize the SPI protocol
-void spiInt(int SPI_Pin_MOSI, int SPI_Pin_CS, int SPI_Pin_CLK) {
-	pinMode(SPI_Pin_MOSI, OUTPUT);
-	pinMode(SPI_Pin_CLK, OUTPUT);
-	pinMode(SPI_Pin_CS, OUTPUT);
-	digitalWrite(SPI_Pin_CS, HIGH);
+void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
+	pinMode(spiMosiPin, OUTPUT);
+	pinMode(spiClkPin, OUTPUT);
+	pinMode(spiCsPin, OUTPUT);
+	digitalWrite(spiCsPin, HIGH);
 
 	spiWrite(0X0F, 0);  // Display test
 
@@ -57,41 +53,41 @@ void test01() {
 	byte data = 0b11100011;
 
 	// enable the line
-	digitalWrite(SPI_Pin_CS, LOW);
+	digitalWrite(spiCsPin, LOW);
 
 	for (int i = 7; i >= 0; i--) {                           // 8 bits in a byte
-		digitalWrite(SPI_Pin_MOSI, SPI_bitRead(opcode, i));  // Set MOSI
-		digitalWrite(SPI_Pin_CLK, HIGH);                     // SCK high
-		digitalWrite(SPI_Pin_CLK, LOW);                      // SCK low
+		digitalWrite(spiMosiPin, SPI_bitRead(opcode, i));  // Set MOSI
+		digitalWrite(spiClkPin, HIGH);                     // SCK high
+		digitalWrite(spiClkPin, LOW);                      // SCK low
 	}
 
 	for (int i = 7; i >= 0; i--) {                         // 8 bits in a byte
-		digitalWrite(SPI_Pin_MOSI, SPI_bitRead(data, i));  // Set MOSI
-		digitalWrite(SPI_Pin_CLK, HIGH);                   // SCK high
-		digitalWrite(SPI_Pin_CLK, LOW);                    // SCK low
+		digitalWrite(spiMosiPin, SPI_bitRead(data, i));  // Set MOSI
+		digitalWrite(spiClkPin, HIGH);                   // SCK high
+		digitalWrite(spiClkPin, LOW);                    // SCK low
 	}
 
-	digitalWrite(SPI_Pin_CS, HIGH);
+	digitalWrite(spiCsPin, HIGH);
 }
 
 void spiWrite(byte opcode, byte data) {
 	// enable the line
-	digitalWrite(SPI_Pin_CS, LOW);
+	digitalWrite(spiCsPin, LOW);
 
 	for (int i = 7; i >= 0; i--) {  // 8 bits in a byte
 
-		digitalWrite(SPI_Pin_MOSI, SPI_bitRead(opcode, i));  // Set MOSI
-		digitalWrite(SPI_Pin_CLK, HIGH);                     // SCK high
-		digitalWrite(SPI_Pin_CLK, LOW);                      // SCK low
+		digitalWrite(spiMosiPin, SPI_bitRead(opcode, i));  // Set MOSI
+		digitalWrite(spiClkPin, HIGH);                     // SCK high
+		digitalWrite(spiClkPin, LOW);                      // SCK low
 	}
 	for (int i = 7; i >= 0; i--) {  // 8 bits in a byte
 
-		digitalWrite(SPI_Pin_MOSI, SPI_bitRead(data, i));  // Set MOSI
-		digitalWrite(SPI_Pin_CLK, HIGH);                   // SCK high
-		digitalWrite(SPI_Pin_CLK, LOW);                    // SCK low
+		digitalWrite(spiMosiPin, SPI_bitRead(data, i));  // Set MOSI
+		digitalWrite(spiClkPin, HIGH);                   // SCK high
+		digitalWrite(spiClkPin, LOW);                    // SCK low
 	}
 
-	digitalWrite(SPI_Pin_CS, HIGH);
+	digitalWrite(spiCsPin, HIGH);
 }
 
 void clearDisplay() {
