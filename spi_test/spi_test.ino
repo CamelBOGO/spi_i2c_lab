@@ -16,10 +16,6 @@ void test01();
 void setup() {
 	spiInt();
 
-
-
-
-
 	//   lc.shutdown(0, false);
 	spiWrite(0x0c, 1);
 
