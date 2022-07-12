@@ -16,15 +16,7 @@ void test01();
 void setup() {
 	spiInt();
 
-	spiWrite(0X0F, 0);       //Display test
 
-	spiWrite(0x0B, 0x07);        //scan limit
-
-	spiWrite(0x09, 0);       //Decode mode
-
-	clearDisplay();
-
-	spiWrite(0x0C, 0);       //Shutdown true
 
 
 
@@ -51,6 +43,16 @@ void spiInt(int SPI_Pin_MOSI, int SPI_Pin_CS, int SPI_Pin_CLK){
 	pinMode(SPI_Pin_CLK, OUTPUT);
 	pinMode(SPI_Pin_CS, OUTPUT);
 	digitalWrite(SPI_Pin_CS, HIGH);
+
+	spiWrite(0X0F, 0);       //Display test
+
+	spiWrite(0x0B, 0x07);        //scan limit
+
+	spiWrite(0x09, 0);       //Decode mode
+
+	clearDisplay();
+
+	spiWrite(0x0C, 0);       //Shutdown true
 }
 
 void test01() {
