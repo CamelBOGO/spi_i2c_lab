@@ -34,11 +34,13 @@ void test01() {
 }
 
 void setup() {
-	lc.shutdown(0, false);
-	lc.setIntensity(0, 5);     //Adjust the brightness maximum is 15
-	lc.clearDisplay(0);
-	test01();
-	while (1);
+  
+
+  lc.shutdown(0, false);
+  lc.setIntensity(0, 5);     //Adjust the brightness maximum is 15
+  lc.clearDisplay(0);
+  test01();
+  while (1);
 }
 
 void loop() {
