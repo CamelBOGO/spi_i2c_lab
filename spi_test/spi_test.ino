@@ -1,8 +1,57 @@
 #define SPI_bitRead(value, bit) (((value) >> (bit)) & 0x01)
 
-int SPI_Pin_MOSI = 11;
-int SPI_Pin_CS = 10;
-int SPI_Pin_CLK = 13;
+// Global Variables
+int SPI_Pin_MOSI = 11;	//MOSI
+int SPI_Pin_CS = 10;	//CS
+int SPI_Pin_CLK = 13;	//clk
+
+// Function Prototypes
+void spiInt(int SPI_Pin_MOSI, int SPI_Pin_CS, int SPI_Pin_CLK);
+void spiWrite(byte opcode, byte data);
+void clearDisplay();
+void test01();
+/*------------------------------Main---------------------------------*/
+
+
+void setup() {
+	spiInt();
+
+	spiWrite(0X0F, 0);       //Display test
+
+	spiWrite(0x0B, 0x07);        //scan limit
+
+	spiWrite(0x09, 0);       //Decode mode
+
+	clearDisplay();
+
+	spiWrite(0x0C, 0);       //Shutdown true
+
+
+
+	//   lc.shutdown(0, false);
+	spiWrite(0x0c, 1);
+
+	//   lc.setIntensity(0, 5);     // Adjust the brightness maximum is 15
+	spiWrite(0x0A, 5);
+
+	//   lc.clearDisplay(0);
+	clearDisplay();
+	test01();
+	while (1);
+}
+
+void loop() {
+}
+
+/*------------------------------Defined Function---------------------------------*/
+
+//initialize the SPI protocol
+void spiInt(int SPI_Pin_MOSI, int SPI_Pin_CS, int SPI_Pin_CLK){
+	pinMode(SPI_Pin_MOSI, OUTPUT);
+	pinMode(SPI_Pin_CLK, OUTPUT);
+	pinMode(SPI_Pin_CS, OUTPUT);
+	digitalWrite(SPI_Pin_CS, HIGH);
+}
 
 void test01() {
 	//Create an array with the data to shift out
@@ -53,37 +102,3 @@ void clearDisplay() {
 		spiWrite(i + 1, 0);
 	}
 }
-
-void setup() {
-	pinMode(SPI_Pin_MOSI, OUTPUT);
-	pinMode(SPI_Pin_CLK, OUTPUT);
-	pinMode(SPI_Pin_CS, OUTPUT);
-	digitalWrite(SPI_Pin_CS, HIGH);
-
-	spiWrite(0X0F, 0);       //Display test
-
-	spiWrite(0x0B, 0x07);        //scan limit
-
-	spiWrite(0x09, 0);       //Decode mode
-
-	clearDisplay();
-
-	spiWrite(0x0C, 0);       //Shutdown true
-
-
-
-	//   lc.shutdown(0, false);
-	spiWrite(0x0c, 1);
-
-	//   lc.setIntensity(0, 5);     // Adjust the brightness maximum is 15
-	spiWrite(0x0A, 5);
-
-	//   lc.clearDisplay(0);
-	clearDisplay();
-	test01();
-	while (1);
-}
-
-void loop() {
-}
-
