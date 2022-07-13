@@ -28,17 +28,19 @@ void loop() {}
 
 /*------------------------------Defined Function---------------------------------*/
 
- // initialize the SPI protocol
+ // Initialize the SPI protocol.
 void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
+	// Set MOSI, CLK and CS pin to output mode.
 	pinMode(spiMosiPin, OUTPUT);
 	pinMode(spiClkPin, OUTPUT);
 	pinMode(spiCsPin, OUTPUT);
+	// CS pin high for default.
+	// How about other pins?
 	digitalWrite(spiCsPin, HIGH);
 
+	// Some initializations.
 	spiWrite(0X0F, 0);  // Display test
-
-	spiWrite(0x0B, 0x07);  // scan limit
-
+	spiWrite(0x0B, 0x07);  // Scan limit
 	spiWrite(0x09, 0);  // Decode mode
 
 	clearDisplay();
@@ -47,46 +49,33 @@ void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
 }
 
 void test01() {
-	// Create an array with the data to shift out
-	int addr = 0x00;
+	// Create an array with the data to shift out.
+	// int addr = 0x00;
 	byte opcode = 0x02;
 	byte data = 0b11100011;
 
-	// enable the line
-	digitalWrite(spiCsPin, LOW);
-
-	for (int i = 7; i >= 0; i--) {                           // 8 bits in a byte
-		digitalWrite(spiMosiPin, SPI_bitRead(opcode, i));  // Set MOSI
-		digitalWrite(spiClkPin, HIGH);                     // SCK high
-		digitalWrite(spiClkPin, LOW);                      // SCK low
-	}
-
-	for (int i = 7; i >= 0; i--) {                         // 8 bits in a byte
-		digitalWrite(spiMosiPin, SPI_bitRead(data, i));  // Set MOSI
-		digitalWrite(spiClkPin, HIGH);                   // SCK high
-		digitalWrite(spiClkPin, LOW);                    // SCK low
-	}
-
-	digitalWrite(spiCsPin, HIGH);
+	spiWrite(opcode, data);
 }
 
-void spiWrite(byte opcode, byte data) {
-	// enable the line
-	digitalWrite(spiCsPin, LOW);
-
-	for (int i = 7; i >= 0; i--) {  // 8 bits in a byte
-
-		digitalWrite(spiMosiPin, SPI_bitRead(opcode, i));  // Set MOSI
-		digitalWrite(spiClkPin, HIGH);                     // SCK high
-		digitalWrite(spiClkPin, LOW);                      // SCK low
-	}
-	for (int i = 7; i >= 0; i--) {  // 8 bits in a byte
-
+// SPI write a byte without enable/disable.
+void spiWriteByte(byte data) {
+	for (int i = 7; i >= 0; i--) {
 		digitalWrite(spiMosiPin, SPI_bitRead(data, i));  // Set MOSI
 		digitalWrite(spiClkPin, HIGH);                   // SCK high
 		digitalWrite(spiClkPin, LOW);                    // SCK low
 	}
+}
 
+// SPI write 2 bytes with enable/disable.
+void spiWrite(byte opcode, byte data) {
+	// Enable the line.
+	digitalWrite(spiCsPin, LOW);
+
+	// Write 2 bytes.
+	spiWriteByte(opcode);
+	spiWriteByte(data);
+
+	// Disable the line.
 	digitalWrite(spiCsPin, HIGH);
 }
 
