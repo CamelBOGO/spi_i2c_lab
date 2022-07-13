@@ -38,7 +38,8 @@ void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
 	// How about other pins?
 	digitalWrite(spiCsPin, HIGH);
 
-	// Some initializations.
+	// Some display initializations.
+	// This part should not be inside SPI init?
 	spiWrite(0X0F, 0);  // Display test
 	spiWrite(0x0B, 0x07);  // Scan limit
 	spiWrite(0x09, 0);  // Decode mode
@@ -59,10 +60,13 @@ void test01() {
 
 // SPI write a byte without enable/disable.
 void spiWriteByte(byte data) {
+	// Be careful MSB or LSB first.
 	for (int i = 7; i >= 0; i--) {
-		digitalWrite(spiMosiPin, SPI_bitRead(data, i));  // Set MOSI
-		digitalWrite(spiClkPin, HIGH);                   // SCK high
-		digitalWrite(spiClkPin, LOW);                    // SCK low
+		// Set MOSI (Current bit).
+		digitalWrite(spiMosiPin, SPI_bitRead(data, i));
+		// Clock Pulse
+		digitalWrite(spiClkPin, HIGH);
+		digitalWrite(spiClkPin, LOW);
 	}
 }
 
@@ -80,6 +84,7 @@ void spiWrite(byte opcode, byte data) {
 }
 
 void clearDisplay() {
+	// Use spiWrite instead?
 	for (int i = 0; i < 8; i++) {
 		spiWrite(i + 1, 0);
 	}
