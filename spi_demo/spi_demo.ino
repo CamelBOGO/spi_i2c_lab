@@ -1,150 +1,152 @@
-#define SPI_bitWrite(value, bit) (((value) >> (7-bit)) & 0b1)
+/*
+ * SPI for Daisy Chain
+ */
+
+struct spi {
+	uint8_t spiCsPin;		 // CS
+	uint8_t spiClkPin;		  // CLK
+	uint8_t spiMosiPin;	 // MOSI
+	uint8_t spiMisoPin;	  // MISO
+};
 
 // Global Variables
-uint8_t spiMosiPin = 11;  // MOSI
-uint8_t spiCsPin = 10;    // CS
-uint8_t spiClkPin = 13;   // clk
-uint8_t spiMisoPin = 9;	  // MISO
-int numOfDevices = 1;	  // Number of the max7219-matrix Dot devices
+spi spi1 = { 9,10,11,12 };
+uint8_t numOfDisp = 1;	  // Number of the max7219-matrix Dot devices
 
 // Function Prototypes
-void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin);
-void spiWriteByte(byte data);
-byte spiWriteReadByte(byte data);
+// SPI Related
+void spiInit(spi spi);
+void spiWriteByte(spi spi, byte data);
+byte spiReadWriteByte(spi spi, byte data);
 
-void displayInit();
-void displayWrite(byte opcode, byte data);
-int displayRead();
-byte spiRead();
-void displayClear();
-
-void test01();
+// Display Related
+void displayWrite(spi spi, byte opcode, byte data);
+uint16_t displayReadWrite(spi spi, byte opcode, byte data);
+void displayClear(spi spi, uint8_t numOfDisp);
+void displayInit(spi spi, uint8_t numOfDisp);
 
 /*------------------------------Main---------------------------------*/
 
 void setup() {
 	Serial.begin(9600);
+	spiInit(spi1);
+	displayInit(spi1, numOfDisp);
 
-	spiInit(spiMosiPin, spiCsPin, spiClkPin);
-	displayInit();
+	// Create an array with the data to shift out.
+	byte opcode = 0x02;
+	byte data = 0b11100011;
 
-	test01();
+	displayWrite(spi1, opcode, data);
 }
 
 void loop() {}
 
-/*------------------------------Defined Function---------------------------------*/
+/*------------------------------SPI Related Function---------------------------------*/
 
  // Initialize the SPI protocol.
-void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
-	// Set MOSI, CLK, MISO and CS pin to output mode.
-	pinMode(spiMosiPin, OUTPUT);
-	pinMode(spiClkPin, OUTPUT);
-	pinMode(spiCsPin, OUTPUT);
-	pinMode(spiMisoPin, INPUT_PULLUP);
-	// CS pin high for default.
-	// Clk pin low for default.
-	digitalWrite(spiCsPin, HIGH);
-	digitalWrite(spiClkPin, LOW);
+void spiInit(spi spi) {
+	// Set pins mode.
+	pinMode(spi.spiCsPin, OUTPUT);
+	pinMode(spi.spiClkPin, OUTPUT);
+	pinMode(spi.spiMosiPin, OUTPUT);
+	pinMode(spi.spiMisoPin, INPUT_PULLUP);
 
+	// Set pins default value.
+	digitalWrite(spi.spiCsPin, HIGH);
+	digitalWrite(spi.spiClkPin, LOW);
+	digitalWrite(spi.spiMosiPin, LOW);
 }
 
-void displayInit() {
-	// Initializations of all max7219-matrix Dot devices.
-
-	displayWrite(0x09, 0);		// Set Decode-mode register to no decode for digit 0-7.
-	displayWrite(0x0A, 5);		// Set Intensity register to adjust the brightness, maximum is 15.	
-	displayWrite(0x0B, 0x07);		// Set scan-limit register to determine how many digits(0-7) are displayed.
-	displayWrite(0x0C, 1);  		// Set Shutdown register to normal operation.
-	displayWrite(0X0F, 0);		// Set Display-test register to normal operation.
-	//loop for all devices to initialization.
-	for (int i = 0; i < numOfDevices; i++) {
-		displayWrite(0, 0);
-	}
-
-	displayClear();			// Initialize the led display.
-
-}
-
-void test01() {
-	// Create an array with the data to shift out.
-	// int addr = 0x00;
-	byte opcode = 0x02;
-	byte data = 0b11100011;
-
-	displayWrite(opcode, data);
-}
-
-// SPI write a byte without enable/disable.
-void spiWriteByte(byte data) {
-
+// SPI write a byte without enable/disable and read.
+void spiWriteByte(spi spi, byte data) {
 	// Be careful MSB or LSB first.
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i <= 7; i++) {
 		// Set MOSI (Current bit).
-		digitalWrite(spiMosiPin, SPI_bitWrite(data, i));
+		digitalWrite(spi.spiMosiPin, (data >> (7 - i)) & 0b1);
 		// Clock Pulse
-		digitalWrite(spiClkPin, HIGH);
-		digitalWrite(spiClkPin, LOW);
+		digitalWrite(spi.spiClkPin, HIGH);
+		digitalWrite(spi.spiClkPin, LOW);
 	}
-
 }
 
-// SPI write 2 bytes to MAX7219.
-void displayWrite(byte opcode, byte data) {
-	// Enable the line.
-	digitalWrite(spiCsPin, LOW);
-
-	// Write 2 bytes.
-	spiWriteByte(opcode);
-	spiWriteByte(data);
-
-	// Disable the line.
-	digitalWrite(spiCsPin, HIGH);
-}
-
-// Read 2 bytes from MAX7219 by SPI.
-int displayRead() {
-	digitalWrite(spiCsPin, LOW);
-
-	// Read 2 bytes.
-	byte opcode = spiRead();
-	byte data = spiRead();
-
-	// Disable the line.
-	digitalWrite(spiCsPin, HIGH);
-
-	int read = (opcode << 8) | data;
-	return read;
-}
-
-// Send one byte (0x00) by MISO and return a byte from MOSI.
-byte spiRead() {
-	byte read = 0;
+// SPI read and write a byte at the same time without enable/disable.
+byte spiReadWriteByte(spi spi, byte data) {
+	byte readData = 0;
 
 	// Be careful MSB or LSB first.
-	for (int i = 0; i < 8; i++) {
-		// Set MOSI (no-operation).
-		digitalWrite(spiMosiPin, SPI_bitWrite(0, i));
-
+	for (int i = 0; i <= 7; i++) {
 		// Read
-		read |= digitalRead(spiMisoPin);
-		if (i < 7) read <<= 1;
+		readData |= digitalRead(spi.spiMisoPin);
+		if (i < 7) readData <<= 1;
+
+		// Write: Set MOSI (Current bit).
+		digitalWrite(spi.spiMosiPin, (data >> (7 - i)) & 0b1);
 
 		// Clock Pulse
-		digitalWrite(spiClkPin, HIGH);
-		digitalWrite(spiClkPin, LOW);
+		digitalWrite(spi.spiClkPin, HIGH);
+		digitalWrite(spi.spiClkPin, LOW);
 	}
 
-	return read;
+	return readData;
+}
+
+/*------------------------------Display Related Function---------------------------------*/
+
+// SPI write a 2 bytes cmd to MAX7219 without read
+void displayWrite(spi spi, byte opcode, byte data) {
+	// Enable the line.
+	digitalWrite(spi.spiCsPin, LOW);
+
+	// Write 2 bytes. MSB first.
+	spiWriteByte(spi, opcode);
+	spiWriteByte(spi, data);
+
+	// Disable the line.
+	digitalWrite(spi.spiCsPin, HIGH);
+}
+
+// SPI read and write a 2 bytes cmd from MAX7219
+uint16_t displayReadWrite(spi spi, byte opcode, byte data) {
+	uint16_t readData = 0;
+
+	// Enable the line.
+	digitalWrite(spi.spiCsPin, LOW);
+
+	// Read and Write 2 bytes. MSB first.
+	readData = (readData & spiReadWriteByte(spi, opcode)) << 8;
+	readData = spiReadWriteByte(spi, data);
+
+	// Disable the line.
+	digitalWrite(spi.spiCsPin, HIGH);
+
+	return readData;
 }
 
 // Set all LEDs off
-void displayClear() {
-	// Use MAX7219Write instead?
+void displayClear(spi spi, uint8_t numOfDisp) {
+	// Write all LED to 0.
 	for (int i = 0; i < 8; i++) {
-		displayWrite(i + 1, 0);
+		displayWrite(spi, i + 1, 0);
 	}
-	for (int i = 0; i < numOfDevices; i++) {
-		displayWrite(0, 0);
+
+	// Make sure the cmd above are shift through all displays.
+	for (int i = 0; i < numOfDisp; i++) {
+		displayWrite(spi, 0, 0);
 	}
+}
+
+void displayInit(spi spi, uint8_t numOfDisp) {
+	// Initializations of all max7219-matrix Dot devices.
+	displayWrite(spi, 0x09, 0);		// Set Decode-mode register to no decode for digit 0-7.
+	displayWrite(spi, 0x0A, 5);		// Set Intensity register to adjust the brightness, maximum is 15.	
+	displayWrite(spi, 0x0B, 0x07);		// Set scan-limit register to determine how many digits(0-7) are displayed.
+	displayWrite(spi, 0x0C, 1);  		// Set Shutdown register to normal operation.
+	displayWrite(spi, 0X0F, 0);		// Set Display-test register to normal operation.
+
+	// Loop for all devices to initialization. Make sure the cmd above are shift through all displays.
+	for (int i = 0; i < numOfDisp; i++) {
+		displayWrite(spi, 0, 0);
+	}
+
+	displayClear(spi, numOfDisp);			// Initialize the led display.
 }
