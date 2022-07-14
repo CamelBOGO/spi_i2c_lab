@@ -37,6 +37,9 @@ void setup() {
 	byte data = 0b11100011;
 
 	displayWrite(spi1, opcode, data);
+	uint16_t res = displayReadWrite(spi1, 0, 0);
+
+	Serial.println(res, HEX);
 }
 
 void loop() {}
