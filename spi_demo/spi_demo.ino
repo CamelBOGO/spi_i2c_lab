@@ -97,7 +97,7 @@ void spiWrite(int addr,byte opcode, byte data) {
 
 byte spiRead(){
 	byte data;
-	return 
+	return data;
 }
 
 void clearDisplay() {
