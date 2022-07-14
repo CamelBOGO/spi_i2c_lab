@@ -4,10 +4,13 @@
 uint8_t spiMosiPin = 11;  // MOSI
 uint8_t spiCsPin = 10;    // CS
 uint8_t spiClkPin = 13;   // clk
+uint8_t spiMisoPin = 9;	  // MISO
 
 // Function Prototypes
 void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin);
+void MAX7219Init();
 void spiWrite(byte opcode, byte data);
+void spiWriteByte(byte data);
 void clearDisplay();
 void test01();
 
@@ -15,11 +18,7 @@ void test01();
 
 void setup() {
 	spiInit(spiMosiPin, spiCsPin, spiClkPin);
-
-	spiWrite(0x0c, 1); // lc.shutdown(0, false);	
-	// Adjust the brightness, maximum is 15.
-	spiWrite(0x0A, 5); // lc.setIntensity(0, 5);	
-	clearDisplay(); // lc.clearDisplay(0);
+	MAX7219Init();
 
 	test01();
 }
@@ -34,19 +33,23 @@ void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
 	pinMode(spiMosiPin, OUTPUT);
 	pinMode(spiClkPin, OUTPUT);
 	pinMode(spiCsPin, OUTPUT);
+	pinMode(spiMisoPin,INPUT_PULLUP);
 	// CS pin high for default.
 	// How about other pins?
 	digitalWrite(spiCsPin, HIGH);
 
+}
+
+void MAX7219Init(){
 	// Some display initializations.
-	// This part should not be inside SPI init?
-	spiWrite(0X0F, 0);  // Display test
-	spiWrite(0x0B, 0x07);  // Scan limit
-	spiWrite(0x09, 0);  // Decode mode
+	spiWrite(0x09, 0);		// Set Decode-mode register to no decode for digit 0-7
+	spiWrite(0x0A, 5);		// Set Intensity register to adjust the brightness, maximum is 15.	
+	spiWrite(0x0B, 0x07);	// Set scan-limit register to determine how many digits(0-7) are displayed
+	spiWrite(0x0C, 1);  	// Set Shutdown register to normal operation
+	spiWrite(0X0F, 0);		// Set Display-test register to normal operation
 
 	clearDisplay();
 
-	spiWrite(0x0C, 0);  // Shutdown true
 }
 
 void test01() {
