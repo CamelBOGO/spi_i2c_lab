@@ -1,4 +1,4 @@
-#define SPI_bitRead(value, bit) (((value) >> (bit)) & 0x01)
+#define SPI_bitWrite(value, bit) (((data) >> (7-bit)) & 0b1)
 
 // Global Variables
 uint8_t spiMosiPin = 11;  // MOSI
@@ -12,6 +12,7 @@ void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin);
 void MAX7219Init();
 void spiWrite(byte opcode, byte data);
 void spiWriteByte(byte data);
+byte spiRead();
 void clearDisplay();
 void test01();
 
@@ -42,12 +43,12 @@ void spiInit(uint8_t spiMosiPin, uint8_t spiCsPin, uint8_t spiClkPin) {
 }
 
 void MAX7219Init(){
-	// Some MAX7219 initializations.
+	// Initializations of all max7219-matrix Dot devices.
 	for(int i=0;i<numOfDevices;i++){
 	spiWrite(i,0x09, 0);		// Set Decode-mode register to no decode for digit 0-7
 	spiWrite(i,0x0A, 5);		// Set Intensity register to adjust the brightness, maximum is 15.	
-	spiWrite(i,0x0B, 0x07);	// Set scan-limit register to determine how many digits(0-7) are displayed
-	spiWrite(i,0x0C, 1);  	// Set Shutdown register to normal operation
+	spiWrite(i,0x0B, 0x07);		// Set scan-limit register to determine how many digits(0-7) are displayed
+	spiWrite(i,0x0C, 1);  		// Set Shutdown register to normal operation
 	spiWrite(i,0X0F, 0);		// Set Display-test register to normal operation
 	}
 	clearDisplay();			// Initialize display
@@ -66,9 +67,9 @@ void test01() {
 // SPI write a byte without enable/disable.
 void spiWriteByte(byte data) {
 	// Be careful MSB or LSB first.
-	for (int i = 7; i >= 0; i--) {
+	for (int i = 0; i < 8; i++) {
 		// Set MOSI (Current bit).
-		digitalWrite(spiMosiPin, SPI_bitRead(data, i));
+		digitalWrite(spiMosiPin, SPI_bitWrite(data, i));
 		// Clock Pulse
 		digitalWrite(spiClkPin, HIGH);
 		digitalWrite(spiClkPin, LOW);
@@ -92,6 +93,11 @@ void spiWrite(int addr,byte opcode, byte data) {
 
 	// Disable the line.
 	digitalWrite(spiCsPin, HIGH);
+}
+
+byte spiRead(){
+	byte data;
+	return 
 }
 
 void clearDisplay() {
