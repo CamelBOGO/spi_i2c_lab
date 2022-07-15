@@ -81,6 +81,12 @@ void spiInit(spi spi) {
 	digitalWrite(spi.mosiPin, LOW);
 }
 
+// SPI send out a clock pulse on this port.
+void spiClockPulse(spi spi) {
+	digitalWrite(spi.clkPin, HIGH);
+	digitalWrite(spi.clkPin, LOW);
+}
+
 // SPI write a byte without enable/disable and read.
 void spiWriteByte(spi spi, byte data) {
 	// Be careful MSB or LSB first.
@@ -88,8 +94,7 @@ void spiWriteByte(spi spi, byte data) {
 		// Set MOSI (Current bit).
 		digitalWrite(spi.mosiPin, (data >> (7 - i)) & 0b1);
 		// Clock Pulse
-		digitalWrite(spi.clkPin, HIGH);
-		digitalWrite(spi.clkPin, LOW);
+		spiClockPulse(spi);
 	}
 }
 
@@ -107,8 +112,7 @@ byte spiReadWriteByte(spi spi, byte data) {
 		digitalWrite(spi.mosiPin, (data >> (7 - i)) & 0b1);
 
 		// Clock Pulse
-		digitalWrite(spi.clkPin, HIGH);
-		digitalWrite(spi.clkPin, LOW);
+		spiClockPulse(spi);
 	}
 
 	return readData;
