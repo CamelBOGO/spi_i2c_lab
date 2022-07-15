@@ -94,6 +94,7 @@ void spiWriteByte(spi spi, byte data) {
 	for (int i = 0; i <= 7; i++) {
 		// Set MOSI (Current bit).
 		digitalWrite(spi.mosiPin, (data >> (7 - i)) & 0b1);
+
 		// Clock Pulse
 		spiClockPulse(spi);
 	}
