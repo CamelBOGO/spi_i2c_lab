@@ -17,6 +17,7 @@ uint8_t numOfDisp = 1;	  // Number of the max7219-matrix Dot devices
 // SPI Related
 void spiInit(spi spi);
 void spiWriteByte(spi spi, byte data);
+void spiClockPulse(spi spi);
 byte spiReadWriteByte(spi spi, byte data);
 
 // Display Related
