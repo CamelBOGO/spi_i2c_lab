@@ -4,21 +4,25 @@
 	Author:     DESKTOP-AORUS03\BOGO
 */
 
+struct i2c {
+	uint8_t dataPin;	// sda
+	uint8_t clockPin;	// sca
+};
+
 // Global Variables
-uint8_t dataPin = A4; // sda
-uint8_t clockPin = A5; // sca
-int8_t delayTime = 1; // us
+i2c i2c1 = { A4, A5 };
+int8_t delayTime = 1;
 
 // Function Prototypes
 void i2cHigh(uint8_t pin);
 void i2cLow(uint8_t pin);
 void i2cClockPulse(uint8_t clockPin);
-void i2cStart(uint8_t dataPin, uint8_t clockPin);
-void i2cStop(uint8_t dataPin, uint8_t clockPin);
-byte i2cReadBit(uint8_t dataPin, uint8_t clockPin);
-byte i2cReadByte(uint8_t dataPin, uint8_t clockPin);
-void i2cWriteBit(bool bit, uint8_t dataPin, uint8_t clockPin);
-void i2cWriteByte(byte data, uint8_t dataPin, uint8_t clockPin);
+void i2cStart(i2c i2c);
+void i2cStop(i2c i2c);
+byte i2cReadBit(i2c i2c);
+byte i2cReadByte(i2c i2c);
+void i2cWriteBit(bool bit, i2c i2c);
+void i2cWriteByte(byte data, i2c i2c);
 
 /*------------------------------Main---------------------------------*/
 
@@ -36,10 +40,10 @@ void loop() {
 		byte cmd = address << 1;
 
 		// General I2C Command: Start Bit -> Write Byte -> Read ACK -> Stop Bit.
-		i2cStart(dataPin, clockPin);
-		i2cWriteByte(cmd, dataPin, clockPin);
-		byte ack = i2cReadBit(dataPin, clockPin);
-		i2cStop(dataPin, clockPin);
+		i2cStart(i2c1);
+		i2cWriteByte(cmd, i2c1);
+		byte ack = i2cReadBit(i2c1);
+		i2cStop(i2c1);
 
 		// Check if there is respond. If ACK is pulled down, respond existed.
 		if (ack == 0) {
@@ -67,7 +71,7 @@ void i2cHigh(uint8_t pin) {
 // Set this pin to low, then delay for the time.
 void i2cLow(uint8_t pin) {
 	digitalWrite(pin, LOW);
-	pinMode(pin, OUTPUT);	
+	pinMode(pin, OUTPUT);
 	delayMicroseconds(delayTime);
 }
 
@@ -80,57 +84,57 @@ void i2cClockPulse(uint8_t clockPin) {
 
 // Send a start bit by this I2C pair, including the initial bit.
 // All High -> Hold -> Data Low -> Hold -> Clock Low -> Hold
-void i2cStart(uint8_t dataPin, uint8_t clockPin) {
+void i2cStart(i2c i2c) {
 	// Initial Bit
-	i2cHigh(dataPin);
-	i2cHigh(clockPin);
+	i2cHigh(i2c.dataPin);
+	i2cHigh(i2c.clockPin);
 	delayMicroseconds(delayTime);
 
 	// Start Bit
-	i2cLow(dataPin);
+	i2cLow(i2c.dataPin);
 	delayMicroseconds(delayTime);
-	i2cLow(clockPin);
+	i2cLow(i2c.clockPin);
 	delayMicroseconds(delayTime);
 }
 
 // Send a stop bit by this I2C pair.
 // All Low -> Hold -> Clock High -> Hold -> Data High -> Hold
-void i2cStop(uint8_t dataPin, uint8_t clockPin) {
+void i2cStop(i2c i2c) {
 	// Make sure 2 pins are low.
-	i2cLow(clockPin); // Really need this?
-	i2cLow(dataPin);
+	i2cLow(i2c.clockPin); // Really need this?
+	i2cLow(i2c.dataPin);
 	delayMicroseconds(delayTime);
 
 	// Stop Bit
-	i2cHigh(clockPin);
+	i2cHigh(i2c.clockPin);
 	delayMicroseconds(delayTime);
-	i2cHigh(dataPin);
+	i2cHigh(i2c.dataPin);
 	delayMicroseconds(delayTime);
 }
 
 // Read a voltage level (bit) from this data pin, return it by a byte.
-byte i2cReadBit(uint8_t dataPin, uint8_t clockPin) {
+byte i2cReadBit(i2c i2c) {
 	// Set the pin to high and input mode.
-	i2cHigh(dataPin);
+	i2cHigh(i2c.dataPin);
 
 	// Send a clock pulse, read the bit when the clock is high.
-	i2cHigh(clockPin);
-	byte bit = digitalRead(dataPin);
-	i2cLow(clockPin);
+	i2cHigh(i2c.clockPin);
+	byte bit = digitalRead(i2c.dataPin);
+	i2cLow(i2c.clockPin);
 
 	return bit;
 }
 
 // TO-DO: Simplify the data read.
-byte i2cReadByte(uint8_t dataPin, uint8_t clockPin) {
+byte i2cReadByte(i2c i2c) {
 	byte data = 0;
 
-	i2cHigh(dataPin);
+	i2cHigh(i2c.dataPin);
 	for (byte i = 0; i < 8; i++) {
 		// Same as bitWrite(data, 7 - i, i2cReadBit());
 		// Can it be simpler?
 		// data = data & ~(0b1 << (7 - i)) | i2cReadBit(dataPin, clockPin) << (7 - i);
-		data |= i2cReadBit(dataPin, clockPin);
+		data |= i2cReadBit(i2c);
 		if (i < 7) data <<= 1;
 	}
 
@@ -139,20 +143,20 @@ byte i2cReadByte(uint8_t dataPin, uint8_t clockPin) {
 
 // Write a voltage level (bit) to this data pin.
 // Need input a bit and a I2C pair.
-void i2cWriteBit(bool bit, uint8_t dataPin, uint8_t clockPin) {
+void i2cWriteBit(bool bit, i2c i2c) {
 	// Call set high or low function for data pin depending on the input bit.
-	if (bit) i2cHigh(dataPin);
-	else i2cLow(dataPin);
+	if (bit) i2cHigh(i2c.dataPin);
+	else i2cLow(i2c.dataPin);
 
 	// Send a clock pulse to trigger the writing.
-	i2cClockPulse(clockPin);
+	i2cClockPulse(i2c.clockPin);
 }
 
 // Input a byte to this I2C pair.
-void i2cWriteByte(byte data, uint8_t dataPin, uint8_t clockPin) {
+void i2cWriteByte(byte data, i2c i2c) {
 	// Read the bit from data and write to data pin bit by bit, starting from MSB.
 	for (int i = 0; i < 8; i++) {
 		// Same as bitRead(data, 7 - i);
-		i2cWriteBit(data >> (7 - i) & 0b1, dataPin, clockPin);
+		i2cWriteBit(data >> (7 - i) & 0b1, i2c);
 	}
 }
