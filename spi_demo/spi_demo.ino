@@ -28,21 +28,42 @@ void displayInit(spi spi, uint8_t numOfDisp);
 /*------------------------------Main---------------------------------*/
 
 void setup() {
-	Serial.begin(9600);
 	spiInit(spi1);
 	displayInit(spi1, numOfDisp);
-
-	// Create an array with the data to shift out.
-	byte opcode = 0x02;
-	byte data = 0b11100011;
-
-	displayWrite(spi1, opcode, data);
-	uint16_t res = displayReadWrite(spi1, 0, 0);
-
-	Serial.println(res, HEX);
 }
 
-void loop() {}
+void loop() {
+	// A simple program which includes the demo of SPI R/W
+	// that it shows a dot going from (0, 0) to (7, 7) then go back to (0, 0) and loop again.
+	static byte opcode = 0x01;
+	static byte data = 0x80;
+
+	// Send the cmd.
+	displayWrite(spi1, opcode, data);
+
+	// Get current respond for single display by sending 0;
+	uint16_t res = displayReadWrite(spi1, 0, 0);
+	data = res;
+	res >>= 8;
+	opcode = res;
+
+	delay(100);
+
+	if (data != 0x01) {
+		// Case: The dot is at row middle.
+		data >>= 1;
+	} else if (data == 0x01 && opcode >= 0x08) {
+		// Case: The dot is at the row and column end.
+		displayWrite(spi1, opcode, 0);
+		opcode = 0x01;
+		data = 0x80;
+	} else {
+		// Case: The dot is at the row end.
+		displayWrite(spi1, opcode, 0);
+		opcode++;
+		data = 0x80;
+	}
+}
 
 /*------------------------------SPI Related Function---------------------------------*/
 
@@ -116,8 +137,8 @@ uint16_t displayReadWrite(spi spi, byte opcode, byte data) {
 	digitalWrite(spi.csPin, LOW);
 
 	// Read and Write 2 bytes. MSB first.
-	readData = (readData & spiReadWriteByte(spi, opcode)) << 8;
-	readData = spiReadWriteByte(spi, data);
+	readData = spiReadWriteByte(spi, opcode) << 8;
+	readData |= spiReadWriteByte(spi, data);
 
 	// Disable the line.
 	digitalWrite(spi.csPin, HIGH);
