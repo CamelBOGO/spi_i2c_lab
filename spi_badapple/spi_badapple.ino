@@ -3517,11 +3517,9 @@ struct spi {
 spi spi1 = { 10, 9, 11, 12 };
 uint8_t numOfDisp = 4;
 
-int count = 0;
-
 void setup() {
   spiInit(spi1);
-  displayInit(spi1, 4);
+  displayInit(spi1, 1);
 }
 
 void loop() {
